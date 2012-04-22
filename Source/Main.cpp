@@ -76,7 +76,8 @@ void showUsage()
 	printf("      -p      : reset new module path in dmp\n");
 	printf("  c : Recostruct a callstack from stack memory\n");
 	printf("      -t tid  : thread id\n");
-	printf("      -s      : stop constructing after finding common entry\n");
+	printf("      -s      : show source info for every function\n");
+	printf("      -e      : stop constructing after finding common entry\n");
 	printf("  m : Find address matched with filter from memory\n");
 	printf("      -f flt  : [filter]\n");
 	printf("  o : Find object from memory\n");

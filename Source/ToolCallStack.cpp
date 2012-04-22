@@ -10,6 +10,7 @@ namespace ToolCallStack
 
 Param::Param()
 	: threadId(0)
+	, showSourceInfo(false)
 	, stopOnCommonEntry(false)
 {
 }
@@ -18,7 +19,7 @@ bool Param::parseParam(const vector<wstring>& args)
 {
 	map<wchar_t, wstring> optMap;
 	vector<wstring> leftArgs;
-	if (parseOpt(args, L"t:s", &optMap, &leftArgs) == false)
+	if (parseOpt(args, L"t:se", &optMap, &leftArgs) == false)
 		return false;
 
 	if (leftArgs.size() < 1)
@@ -28,7 +29,8 @@ bool Param::parseParam(const vector<wstring>& args)
 	}
 
 	threadId = _wtoi(getOptValue(optMap, L't').c_str());
-	stopOnCommonEntry = isOpt(optMap, L's');
+	showSourceInfo = isOpt(optMap, L's');
+	stopOnCommonEntry = isOpt(optMap, L'e');
 	dmpFilePath = leftArgs[0];
 
 	return true;
@@ -90,8 +92,12 @@ bool run(const Param& param)
 		Symbols::FuncInfo funcInfo;
 		if (Symbols::getFuncInfo(threadContext.Eip, &funcInfo))
 		{
-			printf("EIP             I(0x%08x) %s\n", 
+			printf("EIP             I(0x%08x) %s", 
 				threadContext.Eip, funcInfo.name.c_str());
+			if (param.showSourceInfo)
+				printf(" %s\n", funcInfo.getSourceString(threadContext.Eip).c_str());
+			else
+				printf("\n");
 		}
 
 		lastFrameSavedValue = threadContext.Ebp;
@@ -121,8 +127,13 @@ bool run(const Param& param)
 			if (lastFrameSavedAddr == addr - 4)
 				tag = lastFrameLinked ? '+' : '-';
 
-			printf("S(0x%08x) %c I(0x%08x) %s\n", 
+			printf("S(0x%08x) %c I(0x%08x) %s", 
 				addr, tag, value, funcInfo.name.c_str());
+
+			if (param.showSourceInfo)
+				printf(" %s\n", funcInfo.getSourceString(value).c_str());
+			else
+				printf("\n");
 
 			if (param.stopOnCommonEntry && isCommonEntryFunc(funcInfo.name))
 				break;

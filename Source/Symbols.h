@@ -18,6 +18,10 @@ namespace Symbols
 		string fileName;
 		uint32 line;
 		uint64 address;
+
+	public:
+		string getString(uint32 codeAddress = 0) const;
+		string getSourceString(uint32 codeAddress = 0) const;
 	};
 
 	bool getFuncInfo(uint32 addr, FuncInfo* funcInfo);
