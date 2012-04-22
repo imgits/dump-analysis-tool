@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Source\Main.cpp" />
+    <ClCompile Include="Source\Precompiled.cpp" />
+    <ClCompile Include="Source\DumpFile.cpp" />
+    <ClCompile Include="Source\Utility.cpp" />
+    <ClCompile Include="Source\Symbols.cpp" />
+    <ClCompile Include="Source\ToolCallStack.cpp" />
+    <ClCompile Include="Source\SearchFilter.cpp" />
+    <ClCompile Include="Source\ToolMemorySearch.cpp" />
+    <ClCompile Include="Source\ToolMemorySearchObject.cpp" />
+    <ClCompile Include="Source\ToolInfo.cpp" />
+    <ClCompile Include="Source\ToolLink.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Precompiled.h" />
+    <ClInclude Include="Source\DumpFile.h" />
+    <ClInclude Include="Source\Utility.h" />
+    <ClInclude Include="Source\Symbols.h" />
+    <ClInclude Include="Source\ToolCallStack.h" />
+    <ClInclude Include="Source\SearchFilter.h" />
+    <ClInclude Include="Source\ToolMemorySearchObject.h" />
+    <ClInclude Include="Source\ToolMemorySearch.h" />
+    <ClInclude Include="Source\ToolInfo.h" />
+    <ClInclude Include="Source\ToolLink.h" />
+  </ItemGroup>
+</Project>
