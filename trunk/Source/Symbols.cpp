@@ -6,26 +6,26 @@
 
 namespace Symbols
 {
-	struct LoadModule
-	{
-		string moduleName;
-		DWORD64 baseAddr;
-	};
-	static vector<LoadModule> loadModules_;
-}
 
-void Symbols::initialize()
+struct LoadModule
 {
-	SymSetOptions(SYMOPT_LOAD_LINES); // | SYMOPT_DEBUG);
+	string moduleName;
+	DWORD64 baseAddr;
+};
+static vector<LoadModule> loadModules_;
+
+void initialize()
+{
+	SymSetOptions(SYMOPT_LOAD_LINES | SYMOPT_DEBUG);
 	SymInitialize(GetCurrentProcess(), NULL, FALSE);
 }
 
-void Symbols::terminate()
+void terminate()
 {
 	SymCleanup(GetCurrentProcess());
 }
 
-void Symbols::loadModuleAllInDumpFile(DumpFile* dumpFile)
+void loadModuleAllInDumpFile(DumpFile* dumpFile)
 {
 	const vector<MINIDUMP_MODULE>& modules = dumpFile->getModules();
 	for (int i=0; i<int(modules.size()); i++)
@@ -52,7 +52,7 @@ void Symbols::loadModuleAllInDumpFile(DumpFile* dumpFile)
 	}
 }
 
-void Symbols::unloadModuleAll()
+void unloadModuleAll()
 {
 	for (int i=0; i<int(loadModules_.size()); i++)
 		SymUnloadModule64(GetCurrentProcess(), loadModules_[i].baseAddr);
@@ -60,7 +60,30 @@ void Symbols::unloadModuleAll()
 	loadModules_.clear();
 }
 
-bool Symbols::getFuncInfo(uint32 addr, FuncInfo* funcInfo)
+string FuncInfo::getString(uint32 codeAddress) const
+{
+	char buf[1024];
+	sprintf_s(buf, "%s %s", name.c_str(), getSourceString(codeAddress).c_str());
+	return buf;
+}
+
+string FuncInfo::getSourceString(uint32 codeAddress) const
+{
+	char buf[1024];
+
+	if (fileName.empty())
+		return "[]";
+
+	int32 dif = codeAddress ? int32(codeAddress - address) : 0;
+	if (dif == 0)
+		sprintf_s(buf, "[%s Line %d]", fileName.c_str(), line);
+	else
+		sprintf_s(buf, "[%s Line %d + 0x%X]", fileName.c_str(), line, dif);
+
+	return buf;
+}
+
+bool getFuncInfo(uint32 addr, FuncInfo* funcInfo)
 {
 	funcInfo->line = 0;
 	funcInfo->address = 0;
@@ -91,3 +114,5 @@ bool Symbols::getFuncInfo(uint32 addr, FuncInfo* funcInfo)
 
 	return true;
 }
+
+} // namespace Symbols

@@ -8,6 +8,7 @@ namespace ToolCallStack
 	{
 		wstring dmpFilePath;		//!< 대상 덤프 파일 경로
 		uint32 threadId;			//!< 대상 ThreadId (지정하지 않으면 예외가 난 쓰레드)
+		bool showSourceInfo;		//!< 함수의 모듈 정보를 포함합니다
 		bool stopOnCommonEntry;		//!< main 등 보통의 EntryPoint 가 나오면 중단
 
 	public:
