@@ -98,6 +98,9 @@ bool getModuleDebugInfo(const wstring& path, ModuleDebugInfo* info)
 	uint32 debugRva	= *(uint32*)&optStart[144];
 	uint32 debugSize = *(uint32*)&optStart[148];
 
+	memset(info->cvGuid, 0, sizeof(info->cvGuid));
+	info->cvAge = 0;
+
 	// 섹션 정보를 돌면서 디버그 정보가 포함된 섹션을 찾아 데이터를 읽음
 
 	const byte* sectionStart = coffStart + 20 + optSize;
@@ -191,12 +194,35 @@ bool setModuleDebugInfoToDmp(const wstring& dmpFilePath,
 	if (linkModulePath)
 	{
 		if (newModulePath.size() > modulePath.size())
+		{
+			// 경로가 들어갈 자리가 부족하니 파일 맨 뒤에 추가
 			mmInfo.ModuleNameRva = fileSize;
+			fileSize += 4 + (int32(newModulePath.size()+1) * sizeof(wchar_t));
+		}
 
 		SetFilePointer(fileHandle, mmInfo.ModuleNameRva, NULL, FILE_BEGIN);
 		int32 len = int32(newModulePath.size() * sizeof(wchar_t));
 		WriteFile(fileHandle, &len, 4, &doneLen, NULL);
 		WriteFile(fileHandle, newModulePath.c_str(), len + sizeof(wchar_t), &doneLen, NULL);
+	}
+
+	// CV 레코드가 없다면 CV 레코드 추가
+
+	if (mmInfo.CvRecord.Rva == 0 && info.cvGuid[0] != 0)
+	{
+		string pdbPathUtf8 = wstr2utf8(info.cvPdbPath);
+
+		mmInfo.CvRecord.Rva = fileSize;
+		mmInfo.CvRecord.DataSize = 4 + 16 + 4 + (pdbPathUtf8.size()+1);
+
+		// CV 레코드가 없었으니 파일 맨 뒤에 추가
+		SetFilePointer(fileHandle, 0, NULL, FILE_END);
+		fileSize += mmInfo.CvRecord.DataSize;
+
+		WriteFile(fileHandle, "RSDS", 4, &doneLen, NULL);
+		WriteFile(fileHandle, info.cvGuid, 16, &doneLen, NULL);
+		WriteFile(fileHandle, &info.cvAge, 4, &doneLen, NULL);
+		WriteFile(fileHandle, pdbPathUtf8.c_str(), pdbPathUtf8.size()+1, &doneLen, NULL);
 	}
 
 	// 모듈 정보 갱신
@@ -206,6 +232,7 @@ bool setModuleDebugInfoToDmp(const wstring& dmpFilePath,
 	uint32 pos = msRva + 4 + mmIdx*sizeof(MINIDUMP_MODULE);
 	SetFilePointer(fileHandle, pos, NULL, FILE_BEGIN);
 
+	mmInfo.SizeOfImage = info.sizeOfImage;
 	mmInfo.CheckSum = info.checkSum;
 	mmInfo.TimeDateStamp = info.timeDateStamp;
 	
